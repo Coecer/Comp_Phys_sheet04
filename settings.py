@@ -32,7 +32,7 @@ def init():
     global cutofffluid            # cutoff arbitrary at 2.5 r0
     cutofffluid = 2.5*sigfluid
     global dt          # time step (fs)
-    dt = 0.1
+    dt = 2              # changed from 0.1 --> 2fs
     global dr 
     dr = sigfluid/30
     global Nanalyze
@@ -42,9 +42,9 @@ def init():
     # number of particle = n1*n2 distributed on s square lattice
     # global n
     global n12 #adding those as globals becaus we want to use them in initialize
-    n12 = 6
+    n12 = 2
     global n3
-    n3 = 12
+    n3 = 3
     global N #particle number
     N = n12 * n12 * n3
     global rho

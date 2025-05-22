@@ -88,6 +88,7 @@ def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsW
         for j in range(i+1, N):
             rijx = pbc(x[i], x[j], L) # calculate pbc distance
             rijy = pbc(y[i], y[j], L)
+            # rijz = pbc(z[i], z[j], L)
             rijz = z[i] - z[j]  #  will be squared so no need for abs()
             
             r2 = rijx * rijx + rijy * rijy + rijz * rijz
