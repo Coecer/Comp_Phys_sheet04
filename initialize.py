@@ -17,14 +17,14 @@ def InitializeAtoms():
     vy = np.zeros(shape=(settings.N))
     vz = np.zeros(shape=(settings.N))
 
-    while nx < settings.n:
+    while nx < settings.n12:
         ny=0
-        while ny < settings.n:
+        while ny < settings.n12:
             nz=0
-            while nz < settings.n:
-                x0 = (nx+1/2) * settings.deltaxyz 
-                y0 = (ny+1/2) * settings.deltaxyz
-                z0 = (nz+1/2) * settings.deltaxyz
+            while nz < settings.n3:
+                x0 = (nx+1/2) * settings.deltaxy
+                y0 = (ny+1/2) * settings.deltaxy
+                z0 = (nz+1/2) * settings.deltaz
                 
                 vx0 = 0.5 - random.randint(0, 1)
                 vy0 = 0.5 - random.randint(0, 1)
@@ -84,12 +84,14 @@ def rescalevelocity(vx, vy, vz, T1, T2):
 
 if __name__ == '__main__':
     settings.init()
-    print(InitializeAtoms()[0])
+    #print(InitializeAtoms()[0])
+    print(settings.deltaxy,settings.deltaz)
     import matplotlib.pyplot as plt
-    x, y, _, _, _, _ = InitializeAtoms()
-    plt.scatter(x,y)
+    x, y, z, _, _, _ = InitializeAtoms()
+    # plt.figure(figsize=[10,20])
+    plt.scatter(x,z)
     plt.xlim([0, settings.L])
-    plt.ylim([0, settings.L])
+    plt.ylim([0, settings.Lz])
     plt.show()
     
     

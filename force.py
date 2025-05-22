@@ -4,7 +4,7 @@ from numba import njit, prange
 
 
 @njit(parallel=True)
-def forceLJ(x, y, z, N, eps, mass, sig, cutoff, L, wE):
+def forceLJ(x, y, z, N, epsfluid, mass, sigfluid, epswall, sigwall, cutofffluid, cutoffwall, L, wE):
     
     fx = np.zeros(N)
     fy = np.zeros(N)
@@ -12,9 +12,9 @@ def forceLJ(x, y, z, N, eps, mass, sig, cutoff, L, wE):
 
     i = 0
 
-    prefac = 4* eps/mass
-    sig12 = sig**12
-    sig6 = sig**6
+    prefac = 4* epsfluid/mass
+    sigfluid12 = sigfluid**12
+    sigfluid6 = sigfluid**6
     epot = 0
 
 
@@ -27,10 +27,10 @@ def forceLJ(x, y, z, N, eps, mass, sig, cutoff, L, wE):
             
             r2 = rijx * rijx + rijy * rijy + rijz * rijz
             # calculate fx, fy, fz
-            if r2 < cutoff * cutoff:
+            if r2 < cutofffluid * cutofffluid:
                 rabs14 = r2**7 
                 rabs8 = r2**4
-                ff = prefac * (sig12/rabs14 - sig6/rabs8)
+                ff = prefac * (sigfluid12/rabs14 - sigfluid6/rabs8)
                 fx[i] -= ff*rijx
                 fy[i] -= ff*rijy
                 fz[i] -= ff*rijz
@@ -39,7 +39,9 @@ def forceLJ(x, y, z, N, eps, mass, sig, cutoff, L, wE):
                 fy[j] += ff * rijy
                 fz[j] += ff * rijz
             if wE:
-                epot += 4* eps *(sig12/r2**6-sig6/r2**3)
+                epot += 4* epsfluid *(sigfluid12/r2**6-sigfluid6/r2**3) # langfristig muss das nochmal gefixt werden idk
+
+            
     # if wE:
     #     for i in prange(N):
     #         for j in range(N):
@@ -48,7 +50,7 @@ def forceLJ(x, y, z, N, eps, mass, sig, cutoff, L, wE):
     #             rijz = pbc(z[i], z[j], L)
                 
     #             r2 = rijx**2 + rijy**2 + rijz**2
-    #             epot += 4* eps *(sig12/r2**12-sig6/r2**6)
+    #             epot += 4* epsfluid *(sigfluid12/r2**12-sigfluid6/r2**6)
 
 
             
@@ -67,20 +69,20 @@ def pbc(xi, xj, L):
     return rij
 
 ############### LJ force and wall force ###############
-def forceLJ_and_walls(x, y, z, N, eps, mass, sig, cutoff, L, epsWall, sigWall, wE):
+def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsWall, sigWall, wE):
 
     fx = np.zeros(N)
     fy = np.zeros(N)
     fz = np.zeros(N)
     # i = 0  not needed imo
-    prefac = 4* eps/mass
-    sig12 = sig**12
-    sig6 = sig**6
+    prefac = 4* epsfluid/mass
+    sigfluid12 = sigfluid**12
+    sigfluid6 = sigfluid**6
     epot = 0
 
-    cutoffWall = 2.5 * sigWall  # same as cutoff actually
-    sigW3 = 3*sigWall**3
-    sigW9 = 9*sigWall**9
+    cutofffluidWall = 2.5 * sigWall  # same as cutofffluid actually
+    sigfluidW3 = 3*sigWall**3
+    sigfluidW9 = 9*sigWall**9
 
     for i in prange(N-1):
         for j in range(i+1, N):
@@ -90,10 +92,10 @@ def forceLJ_and_walls(x, y, z, N, eps, mass, sig, cutoff, L, epsWall, sigWall, w
             
             r2 = rijx * rijx + rijy * rijy + rijz * rijz
             # calculate fx, fy, fz
-            if r2 < cutoff * cutoff:
+            if r2 < cutofffluid * cutofffluid:
                 rabs14 = r2**7 
                 rabs8 = r2**4
-                ff = prefac * (sig12/rabs14 - sig6/rabs8)
+                ff = prefac * (sigfluid12/rabs14 - sigfluid6/rabs8)
                 fx[i] -= ff*rijx
                 fy[i] -= ff*rijy
                 fz[i] -= ff*rijz
@@ -102,7 +104,7 @@ def forceLJ_and_walls(x, y, z, N, eps, mass, sig, cutoff, L, epsWall, sigWall, w
                 fy[j] += ff * rijy
                 fz[j] += ff * rijz
             if wE:
-                epot += 4* eps *(sig12/r2**6-sig6/r2**3)
+                epot += 4* epsfluid *(sigfluid12/r2**6-sigfluid6/r2**3)
 
     epot = 2*epot/N # is already divided by mass --> acceleration not force ## 2* because pairs and per particle
 
@@ -112,15 +114,15 @@ def forceLJ_and_walls(x, y, z, N, eps, mass, sig, cutoff, L, epsWall, sigWall, w
         d_left  = z[i]        # z distance to left wall at z=0
         d_right = 2*L - z[i]  # z distance to right wall at z=2L
 
-        if d_left < cutoffWall and d_left < 0:  # ensure particle isnt behind wall
-            fz[i] += prefacW * (sigW3/d_left**4 - sigW9/d_left**10)
+        if d_left < cutofffluidWall and d_left < 0:  # ensure particle isnt behind wall
+            fz[i] += prefacW * (sigfluidW3/d_left**4 - sigfluidW9/d_left**10)
             # no pairwise contribution for wall and particels, only part contribute
-            epot += prefacW * (sigW9/d_left**9 - sigW3/d_left**3) 
+            epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3) 
         # use elif to skip if already left distance was smaller since
-        # cutoffWall should always prevent that 
-        elif d_right < cutoffWall and d_right < 0: 
-            fz[i] += prefacW * (sigW3/d_right**4 - sigW9/d_right**10)
-            epot += prefacW * (sigW9/d_left**9 - sigW3/d_left**3)
+        # cutofffluidWall should always prevent that 
+        elif d_right < cutofffluidWall and d_right < 0: 
+            fz[i] += prefacW * (sigfluidW3/d_right**4 - sigfluidW9/d_right**10)
+            epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3)
 
     
     return fx, fy, fz, epot # doubled epot contribution bc of pairs is implemented  
@@ -129,11 +131,14 @@ def forceLJ_and_walls(x, y, z, N, eps, mass, sig, cutoff, L, epsWall, sigWall, w
 
 if __name__ == '__main__':
     settings.init()
-    x = np.array([settings.sig/3, settings.L-settings.sig/3,])
+    x = np.array([settings.sigfluid/3, settings.L-settings.sigfluid/3,])
     y = np.array([0,0])
     z = np.array([0,0])
     
-    fx, fy, fz, epot = forceLJ(x, y, z, 2, settings.eps,  settings.mass,  settings.sig,  settings.cutoff,  settings.L, True)
-
+    fx, fy, fz, epot = forceLJ_and_walls(x, y, z, 2, settings.epsfluid, settings.mass, settings.sigfluid, settings.cutofffluid, settings.L, settings.epsWall, settings.sigWall, False)
     print(fx)
     print(fy)
+    #
+
+
+    ### glaube sieht gut aus alles :)
