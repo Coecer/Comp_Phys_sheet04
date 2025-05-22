@@ -24,7 +24,7 @@ def init():
     global epsWall
     epsWall = 1.4887 * 4.184e-6     # CAN BE CHANGED LATER
     global sigWall
-    sigWall = 0.188           # CAN BE CHANGED LATER
+    sigWall = 0.0376        # CAN BE CHANGED LATER
     global cutoffWall
     cutoffWall = 2.5*sigWall
 

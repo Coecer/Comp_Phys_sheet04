@@ -108,21 +108,21 @@ def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsW
 
     epot = 2*epot/N # is already divided by mass --> acceleration not force ## 2* because pairs and per particle
 
-    prefacW = 3*np.sqrt(3) *0.5 * epsWall
-    ######### Add fz force of wall now as well ############
-    for i in prange(N):
-        d_left  = z[i]        # z distance to left wall at z=0
-        d_right = 2*L - z[i]  # z distance to right wall at z=2L
+    # prefacW = 3*np.sqrt(3) *0.5 * epsWall
+    # ######### Add fz force of wall now as well ############
+    # for i in prange(N):
+    #     d_left  = z[i]        # z distance to left wall at z=0
+    #     d_right = 2*L - z[i]  # z distance to right wall at z=2L
 
-        if d_left < cutoffwall and d_left < 0:  # ensure particle isnt behind wall
-            fz[i] += prefacW * (sigfluidW3/d_left**4 - sigfluidW9/d_left**10)
-            # no pairwise contribution for wall and particels, only part contribute
-            epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3) 
-        # use elif to skip if already left distance was smaller since
-        # cutofffluidWall should always prevent that 
-        elif d_right < cutoffwall and d_right < 0: 
-            fz[i] += prefacW * (sigfluidW3/d_right**4 - sigfluidW9/d_right**10)
-            epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3)
+    #     if d_left < cutoffwall and d_left < 0:  # ensure particle isnt behind wall
+    #         fz[i] += prefacW * (sigfluidW3/d_left**4 - sigfluidW9/d_left**10)
+    #         # no pairwise contribution for wall and particels, only part contribute
+    #         epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3) 
+    #     # use elif to skip if already left distance was smaller since
+    #     # cutofffluidWall should always prevent that 
+    #     elif d_right < cutoffwall and d_right < 0: 
+    #         fz[i] += prefacW * (sigfluidW3/d_right**4 - sigfluidW9/d_right**10)
+    #         epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3)
 
     
     return fx, fy, fz, epot # doubled epot contribution bc of pairs is implemented  
