@@ -17,7 +17,7 @@ def WriteTrajectory3d(fileoutput, itime, x, y, z):
     fileoutput.write("ITEM: BOX BOUNDS \n")
     fileoutput.write("%e %e xlo xhi \n" % (0, settings.L))
     fileoutput.write("%e %e xlo xhi \n" % (0, settings.L))
-    fileoutput.write("%e %e xlo xhi \n" % (0, settings.L))
+    fileoutput.write("%e %e xlo xhi \n" % (0, settings.Lz))
     fileoutput.write("ITEM: ATOMS id type x y z \n")
     
     for i in range(0, settings.N):

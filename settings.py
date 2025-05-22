@@ -24,7 +24,7 @@ def init():
     global epsWall
     epsWall = 1.4887 * 4.184e-6     # CAN BE CHANGED LATER
     global sigWall
-    sigWall = 0.0376e-9             # CAN BE CHANGED LATER
+    sigWall = 0.188           # CAN BE CHANGED LATER
     global cutoffWall
     cutoffWall = 2.5*sigWall
 
@@ -32,7 +32,7 @@ def init():
     global cutofffluid            # cutoff arbitrary at 2.5 r0
     cutofffluid = 2.5*sigfluid
     global dt          # time step (fs)
-    dt = 1
+    dt = 0.1
     global dr 
     dr = sigfluid/30
     global Nanalyze

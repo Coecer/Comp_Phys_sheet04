@@ -9,7 +9,8 @@ import numpy as np
 from numba import njit, prange
 
 @njit(parallel=True)
-def VelocityVerlet(x, y, z, vx, vy, vz, fx, fy, fz, L, eps, sigma, cutoff, dt, mass, N, wE):
+def VelocityVerlet(x, y, z, vx, vy, vz, fx, fy, fz, L, epsfluid, sigmafluid, cutofffluid,
+                    epswall, sigmawall, cutoffwall, dt, mass, N, wE):
 
     fx0 = np.zeros(N)
     fy0 = np.zeros(N)
@@ -25,8 +26,8 @@ def VelocityVerlet(x, y, z, vx, vy, vz, fx, fy, fz, L, eps, sigma, cutoff, dt, m
     fy0 = fy
     fz0 = fz
     # update acceleration at t+dt
-    fx, fy, fz, epot = force.forceLJ(x, y, z, N, eps, mass,
-                                      sigma, cutoff, L, wE)
+    fx, fy, fz, epot = force.forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigmafluid,
+                                               cutofffluid, L, epswall, sigmawall, cutoffwall, wE)
 
     # update the velocity
     for i in prange(N):        
