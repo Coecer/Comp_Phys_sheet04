@@ -6,9 +6,9 @@ import numpy as np
 def init():
     
     global nsteps            # number of time step to analyze
-    nsteps = 20000
+    nsteps = 1000         # t_prod/dt = 0.2ns / 2fs = 100 000
     global eqsteps          # eqsteps
-    eqsteps = 10000
+    eqsteps = 500         # t_eq/dt = 0.1ns / 2fs = 50 000
     global mass              # mass of the LJ particles (gram/mole)
     mass = 39.95
     global kb                # boltzmann's constant (g*nm^2/fs^2/mole/K) 
@@ -16,7 +16,8 @@ def init():
     global Tdesired          # temperature of the experiment in K
     Tdesired = 300.
     global epsfluid               # eps in LJ (g*nm^2/fs^2/mole)
-    epsfluid = 0.29788162 * 4.184e-6         # CHANGE TO: 0.1488 kcal/mol
+    epsfluid = 0.29788162 * 4.184e-6         # value from bottom table
+    # epsfluid = 0.1488 * 4.184e-6               # value from text
     global sigfluid                # r0 in LJ (nm)
     sigfluid = 0.188
 
@@ -32,7 +33,7 @@ def init():
     global cutofffluid            # cutoff arbitrary at 2.5 r0
     cutofffluid = 2.5*sigfluid
     global dt          # time step (fs)
-    dt = 2              # changed from 0.1 --> 2fs
+    dt = 0.1              # changed from 0.1 --> 2fs change back again for debuging
     global dr 
     dr = sigfluid/30
     global Nanalyze
@@ -48,7 +49,7 @@ def init():
     global N #particle number
     N = n12 * n12 * n3
     global rho
-    rho = 0.5*sigfluid**(-3) 
+    rho = 0.25*sigfluid**(-3) 
     global L # box length
     L = (N/(2*rho))**(1/3) # adaptation because z side is 2L long (so l is calculated in another manner)
     global Lz # new variable Lz

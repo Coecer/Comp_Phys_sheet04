@@ -59,8 +59,8 @@ from numba import njit, prange
 @njit  
 def pbc(xi, xj, L):
     
-    xi = xi
-    xj = xj
+    xi = xi # ?
+    xj = xj # ? what is this doing?
     
     rij = xj - xi  
     if abs(rij) > 0.5*L:
@@ -77,8 +77,8 @@ def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsW
     fz = np.zeros(N)
     # i = 0  not needed imo
     prefac = 4* epsfluid/mass
-    sigfluid12 = sigfluid**12
-    sigfluid6 = sigfluid**6
+    sigfluid12 = sigfluid**12       # isn't it 12*sigfluid**12 ???
+    sigfluid6 = sigfluid**6         # # isn't it 6*sigfluid**6 ???
     epot = 0
 
     sigfluidW3 = 3*sigWall**3
@@ -88,9 +88,9 @@ def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsW
         for j in range(i+1, N):
             rijx = pbc(x[i], x[j], L) # calculate pbc distance
             rijy = pbc(y[i], y[j], L)
-            # rijz = pbc(z[i], z[j], L)
+            # rijz = pbc(z[i], z[j], 2*L)
             rijz = z[i] - z[j]  #  will be squared so no need for abs()
-            
+
             r2 = rijx * rijx + rijy * rijy + rijz * rijz
             # calculate fx, fy, fz
             if r2 < cutofffluid * cutofffluid:
@@ -109,21 +109,35 @@ def forceLJ_and_walls(x, y, z, N, epsfluid, mass, sigfluid, cutofffluid, L, epsW
 
     epot = 2*epot/N # is already divided by mass --> acceleration not force ## 2* because pairs and per particle
 
-    # prefacW = 3*np.sqrt(3) *0.5 * epsWall
-    # ######### Add fz force of wall now as well ############
+    prefacW = 3*np.sqrt(3) *0.5 * epsWall
+    ######### Add fz force of wall now as well ############
     # for i in prange(N):
-    #     d_left  = z[i]        # z distance to left wall at z=0
-    #     d_right = 2*L - z[i]  # z distance to right wall at z=2L
+    #     d_bot  = z[i]        # z distance to left wall at z=0
+    #     d_top = 2*L - z[i]  # z distance to right wall at z=2L
 
-    #     if d_left < cutoffwall and d_left < 0:  # ensure particle isnt behind wall
-    #         fz[i] += prefacW * (sigfluidW3/d_left**4 - sigfluidW9/d_left**10)
+    #     if 0.0 < d_bot < cutoffwall:  # ensure particle isnt behind wall
+    #         fz[i] += prefacW * (sigfluidW9/d_bot**10 - sigfluidW3/d_bot**4)
     #         # no pairwise contribution for wall and particels, only part contribute
-    #         epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3) 
+    #         epot += prefacW * (sigfluidW9/d_bot**9 - sigfluidW3/d_bot**3) 
     #     # use elif to skip if already left distance was smaller since
     #     # cutofffluidWall should always prevent that 
-    #     elif d_right < cutoffwall and d_right < 0: 
-    #         fz[i] += prefacW * (sigfluidW3/d_right**4 - sigfluidW9/d_right**10)
-    #         epot += prefacW * (sigfluidW9/d_left**9 - sigfluidW3/d_left**3)
+    #     elif 0.0 < d_top < cutoffwall:
+    #         fz[i] -= prefacW * (sigfluidW9/d_bot**10 - sigfluidW3/d_bot**4)
+    #         epot += prefacW * (sigfluidW9/d_top**9 - sigfluidW3/d_top**3)
+    
+    for i in prange(N):
+        d_bot  = z[i]        # z distance to left wall at z=0
+        d_top = 2*L - z[i]  # z distance to right wall at z=2L
+
+        if 0.0 < d_bot < cutoffwall:  # bottom
+            # -dU/dd =  (9*sig9/d^10 - 3*sig3/d^4) * prefacW
+            fz[i] += prefacW * (sigfluidW9/d_bot**10 - sigfluidW3/d_bot**4)
+            epot  += prefacW * (sigfluidW9/d_bot**9  - sigfluidW3/d_bot**3)
+
+        if 0.0 < d_top < cutoffwall:  # top
+            # same dU/dd, but dd/dz = -1 so we subtract
+            fz[i] -= prefacW * (sigfluidW9/d_top**10 - sigfluidW3/d_top**4)
+            epot  += prefacW * (sigfluidW9/d_top**9  - sigfluidW3/d_top**3)
 
     
     return fx, fy, fz, epot # doubled epot contribution bc of pairs is implemented  

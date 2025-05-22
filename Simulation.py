@@ -128,9 +128,12 @@ def SimluationSheet4(wT,Tname, everyN):
             if wT:
                 misc.WriteTrajectory3d(fileoutputeq, i,x,y,z)
 
+        # if i % 50:
+        #     print(f'x, y, z, vx, vy, vz, fx, fy, fz = {x[0], y[0], z[0], vx[0], vy[0], vz[0], fx[0], fy[0], fz[0]}')
+
         # rescale
-        if i % 10 == 0:
-            vx, vy, vz = initialize.rescalevelocity(vx, vy, vz,settings.Tdesired, initialize.temperature(vx, vy, vz))
+        # if i % 10 == 0:
+        #     vx, vy, vz = initialize.rescalevelocity(vx, vy, vz,settings.Tdesired, initialize.temperature(vx, vy, vz))
 
     #open shit for prod
     if wT:
